@@ -27,8 +27,17 @@ jobs:
     - name: Build with Gradle Wrapper and init script
       run: ./gradlew build -I init.gradle --stacktrace
 
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: block-thermo-api           
+        path: build/libs/*.jar      
+        # 如果保留构建后的整个目录，可以用 path: build/libs/
+        # 也可以指定多个路径，每行一个
+        if-no-files-found: warn    
+
   dependency-submission:
-    runs-on: windows-latest          # 改为 windows-latest
+    runs-on: windows-latest          
     permissions:
       contents: write
 
