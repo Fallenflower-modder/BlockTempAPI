@@ -10,7 +10,7 @@ repositories {
     mavenCentral()
 }
 
-version = '0.1.1-build1'
+version = '0.1.1-build2'
 base.archivesName = "block_thermo"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)

@@ -1,10 +1,11 @@
 modLoader="javafml"
 loaderVersion="[1,)"
 license="All Rights Reserved"
+logoFile="META-INF/logo.png"
 
 [[mods]]
 modId="block_thermo"
-version="0.1.1-build1"
+version="0.1.1-build2"
 displayName="Block Thermo"
 authors="DrownedCloud"
 description='''
