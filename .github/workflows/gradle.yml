@@ -16,7 +16,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: read
 
@@ -45,7 +45,7 @@ jobs:
         gradle-version: '8.11.1'
     
      - name: Build with Gradle 8.11.1
-       run: gradle build -I ./init.gradle
+       run: ./gradle build -I ./init.gradle
 
   dependency-submission:
 
