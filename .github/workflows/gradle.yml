@@ -20,17 +20,15 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    # 让 gradlew 可执行（Windows 上通常不需要，但保险）
     - name: Make gradlew executable
       run: chmod +x gradlew
       shell: bash
 
-    # 使用项目自带的 Wrapper 和 init 脚本进行构建
     - name: Build with Gradle Wrapper and init script
-      run: ./gradlew build -I init.gradle --stacktrace
+      run: ./gradlew build -I init.gradle --stacktrace -Dorg.gradle.java.home="$env:JAVA_HOME"
 
   dependency-submission:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest          # 改为 windows-latest
     permissions:
       contents: write
 
@@ -44,8 +42,9 @@ jobs:
 
     - name: Make gradlew executable
       run: chmod +x gradlew
+      shell: bash
 
-    # 依赖提交也使用 Wrapper（会自动检测项目 Gradle 版本）
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
-      # 不需要指定 gradle-version，因为 action 会自动使用项目中的 gradlew
+      uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582
+      env:
+        GRADLE_OPTS: "-Dorg.gradle.java.home=$env:JAVA_HOME"
