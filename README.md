@@ -1,5 +1,9 @@
 # Block Thermo
 
+<div align="center">
+  <img src="src/main/resources/META-INF/logo.png" alt="Block Thermo Logo" width="200" height="200" />
+</div>
+
 一个基于 Minecraft 1.21.1 NeoForge 的热力学系统模组，提供精确的方块坐标温度计算功能。
 
 ## 功能特性

@@ -15,6 +15,6 @@ Block Thermo - A thermodynamic system for blocks.
 [[dependencies.block_thermo]]
 modId="neoforge"
 mandatory=true
-versionRange="[21.1.186,)"
+versionRange="[26.1.0.19-beta,)"
 ordering="NONE"
 side="BOTH"

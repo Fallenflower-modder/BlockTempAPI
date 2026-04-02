@@ -1,10 +1,16 @@
 plugins {
     id 'eclipse'
-    id 'net.neoforged.moddev' version '1.0.21'
+    id 'net.neoforged.moddev' version '2.0.134'
 }
 
 repositories {
     mavenLocal()
+    maven { url = 'https://maven.aliyun.com/repository/public' }
+    maven { url = 'https://maven.aliyun.com/repository/central' }
+    maven { url = 'https://maven.aliyun.com/repository/apache-snapshots' }
+    maven { url = 'https://maven.aliyun.com/repository/google' }
+    maven { url = 'https://maven.aliyun.com/repository/gradle-plugin' }
+    maven { url = 'https://repo1.maven.org/maven2' }
     maven { url = 'https://neoforged.forgecdn.net/releases' }
     maven { url = 'https://neoforged.forgecdn.net/mojang-meta' }
     mavenCentral()
@@ -13,10 +19,10 @@ repositories {
 version = '0.1.1-build2'
 base.archivesName = "block_thermo"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
-    version = "21.1.186"
+    version = "26.1.0.19-beta"
 
     runs {
         client {
