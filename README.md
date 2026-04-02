@@ -16,10 +16,10 @@
 
 ## 构建要求
 
-- Java 21
-- Gradle 8.5+
-- Minecraft 1.21.1
-- NeoForge 21.1.186
+- Java 25
+- Gradle 9.1.0
+- Minecraft 26.1
+- NeoForge 26.1.0.19-beta
 
 ## 快速开始
 
