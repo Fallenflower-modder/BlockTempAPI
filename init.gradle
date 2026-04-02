@@ -1,0 +1,33 @@
+allprojects {
+    buildscript {
+        repositories {
+            all { ArtifactRepository repo ->
+                if (repo instanceof MavenArtifactRepository) {
+                    def url = repo.url.toString()
+                    if (url.startsWith('https://maven.neoforged.net/releases')) {
+                        project.logger.lifecycle "Replacing repository ${repo.url} with mirror https://neoforged.forgecdn.net/releases"
+                        repo.url = 'https://neoforged.forgecdn.net/releases'
+                    } else if (url.startsWith('https://maven.neoforged.net')) {
+                        project.logger.lifecycle "Replacing repository ${repo.url} with mirror https://neoforged.forgecdn.net"
+                        repo.url = 'https://neoforged.forgecdn.net'
+                    }
+                }
+            }
+        }
+    }
+    
+    repositories {
+        all { ArtifactRepository repo ->
+            if (repo instanceof MavenArtifactRepository) {
+                def url = repo.url.toString()
+                if (url.startsWith('https://maven.neoforged.net/releases')) {
+                    project.logger.lifecycle "Replacing repository ${repo.url} with mirror https://neoforged.forgecdn.net/releases"
+                    repo.url = 'https://neoforged.forgecdn.net/releases'
+                } else if (url.startsWith('https://maven.neoforged.net')) {
+                    project.logger.lifecycle "Replacing repository ${repo.url} with mirror https://neoforged.forgecdn.net"
+                    repo.url = 'https://neoforged.forgecdn.net'
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,7 @@
+{
+  "blockthermo.query.temperature": "Current temperature at %s: %.1f°C",
+  "blockthermo.query.position": "(%.0f, %.0f, %.0f)",
+  "blockthermo.query.chunk_not_loaded": "Cannot query unloaded chunk at %s",
+  "blockthermo.query.invalid_coordinates": "Invalid coordinates. Usage: /blockthermo temperature query [x y z]",
+  "blockthermo.query.no_world": "No world available"
+}

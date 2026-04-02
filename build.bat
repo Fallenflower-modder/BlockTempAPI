@@ -1,0 +1,1 @@
+./gradlew build --no-daemon --init-script init.gradle 2>&1 | Select-Object -First 200

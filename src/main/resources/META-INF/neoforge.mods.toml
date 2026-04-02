@@ -1,0 +1,19 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="block_thermo"
+version="0.1.1-build1"
+displayName="Block Thermo"
+authors="DrownedCloud"
+description='''
+Block Thermo - A thermodynamic system for blocks.
+'''
+
+[[dependencies.block_thermo]]
+modId="neoforge"
+mandatory=true
+versionRange="[21.1.186,)"
+ordering="NONE"
+side="BOTH"

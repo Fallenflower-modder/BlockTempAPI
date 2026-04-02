@@ -1,0 +1,7 @@
+{
+  "blockthermo.query.temperature": "%s 处当前温度：%.1f°C",
+  "blockthermo.query.position": "(%.0f, %.0f, %.0f)",
+  "blockthermo.query.chunk_not_loaded": "不可查询未加载区块的位置 %s",
+  "blockthermo.query.invalid_coordinates": "坐标无效。用法：/blockthermo temperature query [x y z]",
+  "blockthermo.query.no_world": "无可用世界"
+}
