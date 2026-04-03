@@ -2,9 +2,9 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "main","Neoforge-26.1" ]
+    branches: [ "Neoforge-26.1" ]
   pull_request:
-    branches: [ "main","Neoforge-26.1" ]
+    branches: [ "Neoforge-26.1" ]
 
 jobs:
   build:
