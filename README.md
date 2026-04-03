@@ -20,7 +20,7 @@
 - Java 21
 - Gradle 8.5+
 - Minecraft 1.21.1
-- NeoForge 21.1.186
+- NeoForge 21.1.186+
 
 ## 快速开始
 
