@@ -171,7 +171,20 @@ public class TemperatureCalculator {
         }
 
         int maxDistance = mainConfig.radiation.maxDistance;
-        String decayType = mainConfig.radiation.decayType;
+        TemperatureMainConfig.DecayType decayType = mainConfig.radiation.decayType;
+
+        if (decayType == null || decayType.select == null || decayType.formulas == null) {
+            LOGGER.warn("Decay type config is null, skipping radiation calculation");
+            return 0.0f;
+        }
+
+        String selectedFormula = decayType.select;
+        String formula = decayType.formulas.get(selectedFormula);
+
+        if (formula == null) {
+            LOGGER.warn("No formula found for decay type: {}, skipping radiation calculation", selectedFormula);
+            return 0.0f;
+        }
 
         TemperatureRadiationConfig radiationConfig = ConfigLoader.getRadiationConfig();
         if (radiationConfig == null || radiationConfig.sources == null) {
@@ -195,7 +208,7 @@ public class TemperatureCalculator {
                     
                     if (blockTemp != 0) {
                         if (!isLineOfSightBlocked(world, pos, sourcePos)) {
-                            float attenuation = calculateAttenuation(decayType, distance, maxDistance);
+                            float attenuation = calculateAttenuation(formula, distance, maxDistance);
                             totalRadiation += blockTemp * attenuation;
                         }
                     }
@@ -257,14 +270,217 @@ public class TemperatureCalculator {
         return false;
     }
 
-    private static float calculateAttenuation(String decayType, double distance, int maxDistance) {
-        if ("linear".equals(decayType)) {
+    private static float calculateAttenuation(String formula, double distance, int maxDistance) {
+        try {
+            FormulaParser parser = new FormulaParser(formula, distance, maxDistance);
+            return parser.evaluate();
+        } catch (Exception e) {
+            LOGGER.error("Failed to evaluate attenuation formula: {}", formula, e);
+            LOGGER.warn("Using linear attenuation as fallback");
             return (float) Math.max(0, (maxDistance - distance) / maxDistance);
-        } else if ("inverse".equals(decayType)) {
-            return (float) (1 / (distance + 1));
-        } else {
-            LOGGER.warn("Unknown decay type: {}, using linear", decayType);
-            return (float) Math.max(0, (maxDistance - distance) / maxDistance);
+        }
+    }
+
+    private static class FormulaParser {
+        private final String formula;
+        private final double distance;
+        private final int maxDistance;
+        private int pos = 0;
+
+        FormulaParser(String formula, double distance, int maxDistance) {
+            this.formula = formula;
+            this.distance = distance;
+            this.maxDistance = maxDistance;
+        }
+
+        float evaluate() {
+            double result = parseExpression();
+            skipWhitespace();
+            if (pos < formula.length()) {
+                throw new IllegalArgumentException("Unexpected character at position " + pos);
+            }
+            return (float) result;
+        }
+
+        private double parseExpression() {
+            double left = parseTerm();
+            while (true) {
+                skipWhitespace();
+                if (pos < formula.length()) {
+                    char c = formula.charAt(pos);
+                    if (c == '+' || c == '-') {
+                        pos++;
+                        double right = parseTerm();
+                        if (c == '+') {
+                            left += right;
+                        } else {
+                            left -= right;
+                        }
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            return left;
+        }
+
+        private double parseTerm() {
+            double left = parseFactor();
+            while (true) {
+                skipWhitespace();
+                if (pos < formula.length()) {
+                    char c = formula.charAt(pos);
+                    if (c == '*' || c == '/') {
+                        pos++;
+                        double right = parseFactor();
+                        if (c == '*') {
+                            left *= right;
+                        } else {
+                            if (right == 0) {
+                                throw new ArithmeticException("Division by zero");
+                            }
+                            left /= right;
+                        }
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            return left;
+        }
+
+        private double parseFactor() {
+            skipWhitespace();
+            if (pos >= formula.length()) {
+                throw new IllegalArgumentException("Unexpected end of formula");
+            }
+
+            char c = formula.charAt(pos);
+            if (c == '(') {
+                pos++;
+                double result = parseExpression();
+                skipWhitespace();
+                if (pos >= formula.length() || formula.charAt(pos) != ')') {
+                    throw new IllegalArgumentException("Missing closing parenthesis");
+                }
+                pos++;
+                return result;
+            } else if (c == '-') {
+                pos++;
+                return -parseFactor();
+            } else if (c == '+') {
+                pos++;
+                return parseFactor();
+            } else if (Character.isDigit(c) || c == '.') {
+                return parseNumber();
+            } else if (Character.isLetter(c)) {
+                return parseFunctionOrVariable();
+            } else {
+                throw new IllegalArgumentException("Unexpected character: " + c + " at position " + pos);
+            }
+        }
+
+        private double parseNumber() {
+            int start = pos;
+            while (pos < formula.length() && (Character.isDigit(formula.charAt(pos)) || formula.charAt(pos) == '.')) {
+                pos++;
+            }
+            String number = formula.substring(start, pos);
+            try {
+                return Double.parseDouble(number);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid number: " + number);
+            }
+        }
+
+        private double parseFunctionOrVariable() {
+            int start = pos;
+            while (pos < formula.length() && Character.isLetterOrDigit(formula.charAt(pos))) {
+                pos++;
+            }
+            String name = formula.substring(start, pos);
+
+            skipWhitespace();
+            if (pos < formula.length() && formula.charAt(pos) == '(') {
+                pos++;
+                double argument = parseExpression();
+                skipWhitespace();
+                if (pos >= formula.length() || formula.charAt(pos) != ')') {
+                    throw new IllegalArgumentException("Missing closing parenthesis for function: " + name);
+                }
+                pos++;
+                return evaluateFunction(name, argument);
+            } else {
+                return evaluateVariable(name);
+            }
+        }
+
+        private double evaluateFunction(String name, double argument) {
+            switch (name.toLowerCase()) {
+                case "exp":
+                    return Math.exp(argument);
+                case "ln":
+                case "log":
+                    if (argument <= 0) {
+                        throw new IllegalArgumentException("Logarithm of non-positive number");
+                    }
+                    return Math.log(argument);
+                case "log10":
+                    if (argument <= 0) {
+                        throw new IllegalArgumentException("Logarithm of non-positive number");
+                    }
+                    return Math.log10(argument);
+                case "sqrt":
+                    if (argument < 0) {
+                        throw new IllegalArgumentException("Square root of negative number");
+                    }
+                    return Math.sqrt(argument);
+                case "sin":
+                    return Math.sin(argument);
+                case "cos":
+                    return Math.cos(argument);
+                case "tan":
+                    return Math.tan(argument);
+                case "asin":
+                    if (argument < -1 || argument > 1) {
+                        throw new IllegalArgumentException("Asin argument out of range [-1, 1]");
+                    }
+                    return Math.asin(argument);
+                case "acos":
+                    if (argument < -1 || argument > 1) {
+                        throw new IllegalArgumentException("Acos argument out of range [-1, 1]");
+                    }
+                    return Math.acos(argument);
+                case "atan":
+                    return Math.atan(argument);
+                case "abs":
+                    return Math.abs(argument);
+                default:
+                    throw new IllegalArgumentException("Unknown function: " + name);
+            }
+        }
+
+        private double evaluateVariable(String name) {
+            switch (name.toLowerCase()) {
+                case "distance":
+                case "d":
+                    return distance;
+                case "maxdistance":
+                case "md":
+                    return maxDistance;
+                default:
+                    throw new IllegalArgumentException("Unknown variable: " + name);
+            }
+        }
+
+        private void skipWhitespace() {
+            while (pos < formula.length() && Character.isWhitespace(formula.charAt(pos))) {
+                pos++;
+            }
         }
     }
 

@@ -1,10 +1,15 @@
 # Block Thermo
 
+<div align="center">
+  <img src="src/main/resources/META-INF/logo.png" alt="Block Thermo Logo" width="200" height="200" />
+</div>
+
 一个基于 Minecraft 1.21.1 NeoForge 的热力学系统模组，提供精确的方块坐标温度计算功能。
 
 ## 功能特性
 
 - **精确温度计算**：基于生物群系、海拔高度、时间、天气和辐射源的多因素温度计算
+- **自定义热辐射衰减算法**：支持通过配置文件定义自定义的热辐射衰减公式
 - **配置系统**：支持自定义维度配置、生物群系温度和辐射源配置
 - **API 接口**：提供完整的 API 供其他模组扩展
 - **游戏命令**：内置温度查询命令
@@ -25,7 +30,7 @@
 ./gradlew build
 ```
 
-构建完成后， jar 文件将位于 `build/libs/` 目录下。
+构建完成后，jar 文件将位于 `build/libs/` 目录下。
 
 ### 安装模组
 
@@ -77,10 +82,59 @@
   },
   "radiation": {
     "max_distance": 5,
-    "decay_type": "inverse"
+    "decay_type": {
+      "select": "linear",
+      "formulas": {
+        "linear": "(maxDistance - distance) / maxDistance",
+        "inverse": "1 / (distance + 1)",
+        "exponential": "exp(-distance / maxDistance)",
+        "quadratic": "1 - (distance / maxDistance)^2"
+      }
+    }
   }
 }
 ```
+
+#### 热辐射衰减算法配置
+
+`decay_type` 字段允许您配置自定义的热辐射衰减公式：
+
+- `select`：指定要使用的衰减公式代号
+- `formulas`：包含多个预定义或自定义的衰减公式
+
+##### 可用变量：
+- `distance` 或 `d`：当前距离
+- `maxDistance` 或 `md`：最大辐射距离
+
+##### 支持的数学函数：
+- `exp(x)`：指数函数
+- `ln(x)` 或 `log(x)`：自然对数
+- `log10(x)`：以10为底的对数
+- `sqrt(x)`：平方根
+- `sin(x)`：正弦函数
+- `cos(x)`：余弦函数
+- `tan(x)`：正切函数
+- `asin(x)`：反正弦函数
+- `acos(x)`：反余弦函数
+- `atan(x)`：反正切函数
+- `abs(x)`：绝对值
+
+##### 预定义公式示例：
+
+1. **线性衰减**：`(maxDistance - distance) / maxDistance`
+   - 温度随距离线性下降
+
+2. **反比衰减**：`1 / (distance + 1)`
+   - 近距离衰减快，远距离衰减慢
+
+3. **指数衰减**：`exp(-distance / maxDistance)`
+   - 衰减速度逐渐减慢
+
+4. **二次衰减**：`1 - (distance / maxDistance)^2`
+   - 近距离衰减慢，远距离衰减快
+
+5. **自定义示例**：`exp(-distance / (maxDistance / 2)) * (1 - distance / maxDistance)`
+   - 组合多种衰减特性
 
 ### temperature_biomes.json
 
@@ -279,8 +333,8 @@ ExtensionManager.setRadiationTemperatureProvider(new RadiationTemperatureProvide
 ### 辐射修正
 
 - 检测周围指定距离内的辐射源
-- 根据距离衰减计算辐射影响
-- 支持线性衰减和反比衰减两种类型
+- 根据配置的衰减公式计算辐射影响
+- 支持自定义衰减公式
 
 ## 开发者指南
 
@@ -357,6 +411,17 @@ public class BlockThermo {
 - 项目地址：[GitHub Repository]
 
 ## 更新日志
+
+### 0.2.1-build1
+- 修复了配置文件格式兼容性问题
+- 添加了自动配置迁移功能，支持从旧格式自动升级到新格式
+- 改进了错误处理和日志记录
+
+### 0.2.0-build1
+- 新增自定义热辐射衰减算法功能
+- 支持通过配置文件定义自定义衰减公式
+- 添加公式解析器，支持多种数学函数和变量
+- 预定义多种衰减公式（线性、反比、指数、二次）
 
 ### 0.1.1-build1
 - 修复配置文件生成问题

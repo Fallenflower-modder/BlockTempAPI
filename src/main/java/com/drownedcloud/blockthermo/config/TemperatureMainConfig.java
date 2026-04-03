@@ -63,6 +63,14 @@ public class TemperatureMainConfig {
         public int maxDistance;
 
         @SerializedName("decay_type")
-        public String decayType;
+        public DecayType decayType;
+    }
+
+    public static class DecayType {
+        @SerializedName("select")
+        public String select;
+
+        @SerializedName("formulas")
+        public Map<String, String> formulas;
     }
 }

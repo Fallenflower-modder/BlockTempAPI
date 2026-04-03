@@ -1,7 +1,6 @@
 package com.drownedcloud.blockthermo.config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import net.neoforged.fml.loading.FMLPaths;
 import org.slf4j.Logger;
@@ -54,6 +53,11 @@ public class ConfigLoader {
             if (Files.exists(filePath)) {
                 LOGGER.info("Loading config file: {}", filePath);
                 String content = Files.readString(filePath, StandardCharsets.UTF_8);
+                
+                if (clazz == TemperatureMainConfig.class) {
+                    content = migrateMainConfig(content, filePath);
+                }
+                
                 T config = GSON.fromJson(content, clazz);
                 LOGGER.info("Successfully loaded config: {}", fileName);
                 return config;
@@ -66,6 +70,54 @@ public class ConfigLoader {
         } catch (Exception e) {
             LOGGER.error("Failed to load config: {}", fileName, e);
             throw new RuntimeException("Failed to load config: " + fileName, e);
+        }
+    }
+
+    private static String migrateMainConfig(String content, Path filePath) {
+        try {
+            JsonElement root = JsonParser.parseString(content);
+            
+            if (!root.isJsonObject()) {
+                return content;
+            }
+            
+            JsonObject rootObj = root.getAsJsonObject();
+            
+            if (!rootObj.has("radiation") || !rootObj.get("radiation").isJsonObject()) {
+                return content;
+            }
+            
+            JsonObject radiation = rootObj.getAsJsonObject("radiation");
+            
+            if (radiation.has("decay_type") && radiation.get("decay_type").isJsonPrimitive()) {
+                String oldDecayType = radiation.get("decay_type").getAsString();
+                LOGGER.info("Detected old format decay_type: {}, migrating to new format", oldDecayType);
+                
+                radiation.remove("decay_type");
+                
+                JsonObject decayTypeObj = new JsonObject();
+                decayTypeObj.addProperty("select", oldDecayType);
+                
+                JsonObject formulasObj = new JsonObject();
+                formulasObj.addProperty("linear", "(maxDistance - distance) / maxDistance");
+                formulasObj.addProperty("inverse", "1 / (distance + 1)");
+                formulasObj.addProperty("exponential", "exp(-distance / maxDistance)");
+                formulasObj.addProperty("quadratic", "1 - (distance / maxDistance)^2");
+                
+                decayTypeObj.add("formulas", formulasObj);
+                radiation.add("decay_type", decayTypeObj);
+                
+                String migratedContent = GSON.toJson(root);
+                Files.writeString(filePath, migratedContent, StandardCharsets.UTF_8);
+                LOGGER.info("Successfully migrated config to new format");
+                
+                return migratedContent;
+            }
+            
+            return content;
+        } catch (Exception e) {
+            LOGGER.error("Failed to migrate main config", e);
+            return content;
         }
     }
 
@@ -110,7 +162,13 @@ public class ConfigLoader {
                 
                 config.radiation = new TemperatureMainConfig.Radiation();
                 config.radiation.maxDistance = 5;
-                config.radiation.decayType = "inverse";
+                config.radiation.decayType = new TemperatureMainConfig.DecayType();
+                config.radiation.decayType.select = "linear";
+                config.radiation.decayType.formulas = new HashMap<>();
+                config.radiation.decayType.formulas.put("linear", "(maxDistance - distance) / maxDistance");
+                config.radiation.decayType.formulas.put("inverse", "1 / (distance + 1)");
+                config.radiation.decayType.formulas.put("exponential", "exp(-distance / maxDistance)");
+                config.radiation.decayType.formulas.put("quadratic", "1 - (distance / maxDistance)^2");
                 
                 return clazz.cast(config);
             } else if (clazz == TemperatureBiomesConfig.class) {

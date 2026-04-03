@@ -10,7 +10,7 @@ repositories {
     mavenCentral()
 }
 
-version = '0.1.1-build2'
+version = '0.2.1-build1'
 base.archivesName = "block_thermo"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -21,13 +21,6 @@ neoForge {
     runs {
         client {
             client()
-
-            def mcreatorJvmOptions = System.getenv('MCREATOR_JVM_OPTIONS')
-            if (mcreatorJvmOptions) {
-                mcreatorJvmOptions.split("\\s+").findAll { it.trim() }.each { arg ->
-                    jvmArgument(arg)
-                }
-            }
         }
         server {
             server()
@@ -46,8 +39,13 @@ neoForge {
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include '**'
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-apply from: 'mcreator.gradle'
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
