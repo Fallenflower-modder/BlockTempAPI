@@ -1,6 +1,10 @@
 # Block Thermo
 
-一个基于 Minecraft 1.21.1 NeoForge 的热力学系统模组，提供精确的方块坐标温度计算功能。
+<div align="center">
+  <img src="src/main/resources/META-INF/logo.png" alt="Block Thermo Logo" width="200" height="200" />
+</div>
+
+一个基于 Minecraft 26.1 NeoForge 的热力学系统模组，提供精确的方块坐标温度计算功能。
 
 ## 功能特性
 
@@ -12,10 +16,10 @@
 
 ## 构建要求
 
-- Java 21
-- Gradle 8.5+
-- Minecraft 1.21.1
-- NeoForge 21.1.186
+- Java 25
+- Gradle 9.1.0
+- Minecraft 26.1
+- NeoForge 26.1.0.19-beta
 
 ## 快速开始
 

@@ -7,7 +7,7 @@ import com.drownedcloud.blockthermo.config.TemperatureRadiationConfig;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import org.slf4j.Logger;
@@ -37,7 +37,10 @@ public class TemperatureCalculator {
             return 20.0f;
         }
 
-        String dimensionId = world.dimension().location().toString();
+        String dimensionId = world.dimension().toString();
+        if (dimensionId.startsWith("ResourceKey[minecraft:dimension / ")) {
+            dimensionId = dimensionId.substring("ResourceKey[minecraft:dimension / ".length(), dimensionId.length() - 1);
+        }
         TemperatureMainConfig.DimensionConfig dimConfig = getDimensionConfig(dimensionId);
         if (dimConfig == null) {
             LOGGER.warn("No dimension config for {}, using default", dimensionId);
@@ -212,7 +215,7 @@ public class TemperatureCalculator {
             return 0.0f;
         }
 
-        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(
+        Identifier blockId = BuiltInRegistries.BLOCK.getKey(
             world.getBlockState(pos).getBlock());
         
         if (blockId == null) {
